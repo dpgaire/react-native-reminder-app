@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import { updateReminder } from "../redux/remindersSlice";
+import { scheduleNotification } from "../notifications/notification";
 
 const ReminderDetailsScreen = ({ route, navigation }) => {
   const { id } = route.params;
@@ -15,8 +16,9 @@ const ReminderDetailsScreen = ({ route, navigation }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dispatch = useDispatch();
 
-  const handleUpdateReminder = () => {
+  const handleUpdateReminder = async () => {
     dispatch(updateReminder({ id, title, date: date.toISOString() }));
+    await scheduleNotification(title, "Reminder!", new Date(date));
     navigation.goBack();
   };
 
