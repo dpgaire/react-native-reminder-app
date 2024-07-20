@@ -1,16 +1,28 @@
 import React from "react";
-import { View, Text, Button, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const ReminderItem = ({ item, onEdit, onDelete }) => {
   return (
     <View style={styles.itemContainer}>
       <View style={styles.info}>
         <Text style={styles.title}>{item.title}</Text>
+        <Text style={styles.description}>{item.description}</Text>
         <Text style={styles.date}>{new Date(item.date).toLocaleString()}</Text>
       </View>
       <View style={styles.buttons}>
-        <Button title="Edit" onPress={onEdit} />
-        <Button title="Delete" onPress={onDelete} />
+        <TouchableOpacity
+          onPress={onEdit}
+          style={[styles.iconButton, styles.editButton]}
+        >
+          <Icon name="pencil" size={20} color="#4CAF50" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={onDelete}
+          style={[styles.iconButton, styles.deleteButton]}
+        >
+          <Icon name="trash" size={20} color="#F44336" />
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -21,24 +33,52 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
-    marginTop: 10,
+    padding: 15,
+    backgroundColor: "#fff",
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+    marginVertical: 10,
   },
   info: {
     flex: 1,
   },
   title: {
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  description: {
+    fontSize: 14,
   },
   date: {
     fontSize: 14,
     color: "gray",
+    marginTop: 5,
   },
   buttons: {
     flexDirection: "row",
-    gap: 5,
+  },
+  iconButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 40,
+    height: 40,
+    borderRadius: 5,
+    marginLeft: 10,
+  },
+  editButton: {
+    borderWidth: 2,
+    borderColor: "#4CAF50",
+  },
+  deleteButton: {
+    borderWidth: 2,
+    borderColor: "#F44336",
   },
 });
 

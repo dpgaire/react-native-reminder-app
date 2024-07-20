@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { useDispatch } from "react-redux";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import Icon from "react-native-vector-icons/Ionicons";
 import { addReminder } from "../redux/remindersSlice";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -11,6 +19,7 @@ import {
 
 const AddReminderScreen = ({ navigation = {} }) => {
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dispatch = useDispatch();
@@ -20,8 +29,22 @@ const AddReminderScreen = ({ navigation = {} }) => {
   }, []);
 
   const handleAddReminder = async () => {
-    dispatch(addReminder({ id: uuidv4(), title, date: date.toISOString() }));
-    await scheduleNotification(title, "Reminder!", new Date(date));
+    if (title.trim() === "" || description.trim() === "") {
+      Alert.alert(
+        "Validation Error",
+        "Please enter both title and description."
+      );
+      return;
+    }
+    dispatch(
+      addReminder({
+        id: uuidv4(),
+        title,
+        description,
+        date: date.toISOString(),
+      })
+    );
+    await scheduleNotification(title, description, new Date(date));
     navigation.goBack();
   };
 
@@ -41,9 +64,26 @@ const AddReminderScreen = ({ navigation = {} }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Reminder Title</Text>
-      <TextInput style={styles.input} value={title} onChangeText={setTitle} />
-      <Button onPress={showDatepicker} title="Select Date and Time" />
+      <TextInput
+        style={styles.input}
+        placeholder="Title"
+        value={title}
+        onChangeText={setTitle}
+        autoFocus
+      />
+      <TextInput
+        style={[styles.input, styles.descriptionInput]}
+        placeholder="Description"
+        value={description}
+        onChangeText={setDescription}
+        multiline
+      />
+      <TouchableOpacity style={styles.dateButton} onPress={showDatepicker}>
+        <Icon name="calendar" size={24} color="#fff" />
+        <Text style={styles.dateButtonText}>
+          {date.toLocaleDateString()} {date.toLocaleTimeString()}
+        </Text>
+      </TouchableOpacity>
       <DateTimePickerModal
         isVisible={showDatePicker}
         mode="datetime"
@@ -51,9 +91,12 @@ const AddReminderScreen = ({ navigation = {} }) => {
         onConfirm={onDateChange}
         onCancel={hideDatepicker}
       />
-      <View style={styles.addReminderButton}>
-        <Button title="Add Reminder" onPress={handleAddReminder} />
-      </View>
+      <TouchableOpacity
+        style={styles.addReminderButton}
+        onPress={handleAddReminder}
+      >
+        <Text style={styles.addReminderButtonText}>Add Reminder</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -62,27 +105,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    // backgroundColor: "red",
-  },
-  label: {
-    fontSize: 18,
-    marginBottom: 10,
+    backgroundColor: "#F9F9F9",
   },
   input: {
-    height: 40,
-    borderColor: "gray",
+    height: 50,
+    borderColor: "#ddd",
     borderWidth: 1,
+    borderRadius: 5,
+    paddingHorizontal: 15,
+    backgroundColor: "#fff",
     marginBottom: 20,
-    paddingHorizontal: 10,
   },
-  dateTimePicker: {
-    marginTop: 10,
+  descriptionInput: {
+    height: 80,
+    // textAlignVertical: "top",
   },
-  selectedDate: {
-    marginBottom: 10,
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#007BFF",
+    borderRadius: 5,
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginBottom: 20,
+  },
+  dateButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    marginLeft: 10,
   },
   addReminderButton: {
-    marginTop: 10,
+    backgroundColor: "#28A745",
+    borderRadius: 5,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  addReminderButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
 
