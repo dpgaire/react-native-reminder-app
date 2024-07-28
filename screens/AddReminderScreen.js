@@ -22,6 +22,7 @@ const AddReminderScreen = ({ navigation = {} }) => {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [errors, setErrors] = useState({ title: "", description: "" });
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -29,13 +30,24 @@ const AddReminderScreen = ({ navigation = {} }) => {
   }, []);
 
   const handleAddReminder = async () => {
-    if (title.trim() === "" || description.trim() === "") {
-      Alert.alert(
-        "Validation Error",
-        "Please enter both title and description."
-      );
+    const newErrors = { title: "", description: "" };
+    let hasError = false;
+
+    if (title.trim() === "") {
+      newErrors.title = "Title is required.";
+      hasError = true;
+    }
+
+    if (description.trim() === "") {
+      newErrors.description = "Description is required.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
       return;
     }
+
     dispatch(
       addReminder({
         id: uuidv4(),
@@ -46,6 +58,20 @@ const AddReminderScreen = ({ navigation = {} }) => {
     );
     await scheduleNotification(title, description, new Date(date));
     navigation.goBack();
+  };
+
+  const handleInputChange = (field, value) => {
+    if (field === "title") {
+      setTitle(value);
+      if (value.trim() !== "") {
+        setErrors((prevErrors) => ({ ...prevErrors, title: "" }));
+      }
+    } else if (field === "description") {
+      setDescription(value);
+      if (value.trim() !== "") {
+        setErrors((prevErrors) => ({ ...prevErrors, description: "" }));
+      }
+    }
   };
 
   const showDatepicker = () => {
@@ -64,20 +90,36 @@ const AddReminderScreen = ({ navigation = {} }) => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Title"
-        value={title}
-        onChangeText={setTitle}
-        autoFocus
-      />
-      <TextInput
-        style={[styles.input, styles.descriptionInput]}
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[styles.input, errors.title ? styles.inputError : null]}
+          placeholder="Title"
+          value={title}
+          onChangeText={(text) => handleInputChange("title", text)}
+          autoFocus
+        />
+        {errors.title ? (
+          <Text style={styles.errorText}>{errors.title}</Text>
+        ) : null}
+      </View>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[
+            styles.input,
+            styles.descriptionInput,
+            errors.description ? styles.inputError : null,
+          ]}
+          placeholder="Description"
+          value={description}
+          onChangeText={(text) => handleInputChange("description", text)}
+          multiline
+        />
+        {errors.description ? (
+          <Text style={styles.errorText}>{errors.description}</Text>
+        ) : null}
+      </View>
+
       <TouchableOpacity style={styles.dateButton} onPress={showDatepicker}>
         <Icon name="calendar" size={24} color="#fff" />
         <Text style={styles.dateButtonText}>
@@ -107,6 +149,9 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#F9F9F9",
   },
+  inputContainer: {
+    marginBottom: 10, // Adjust space between fields and error messages
+  },
   input: {
     height: 50,
     borderColor: "#ddd",
@@ -114,11 +159,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 15,
     backgroundColor: "#fff",
-    marginBottom: 20,
   },
   descriptionInput: {
     height: 80,
-    // textAlignVertical: "top",
+    textAlignVertical: "top",
+  },
+  inputError: {
+    borderColor: "#F44336", // Red border for error state
   },
   dateButton: {
     flexDirection: "row",
@@ -144,6 +191,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "#F44336", // Red color for error text
+    fontSize: 14,
+    marginTop: 5, // Space between input field and error message
   },
 });
 

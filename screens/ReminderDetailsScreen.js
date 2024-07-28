@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -22,21 +22,52 @@ const ReminderDetailsScreen = ({ route, navigation }) => {
   const [description, setDescription] = useState(reminder?.description || "");
   const [date, setDate] = useState(new Date(reminder?.date || Date.now()));
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [errors, setErrors] = useState({ title: "", description: "" });
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    // Ensure date picker shows the correct initial date
+    setDate(new Date(reminder?.date || Date.now()));
+  }, [reminder?.date]);
+
   const handleUpdateReminder = async () => {
-    if (title.trim() === "" || description.trim() === "") {
-      Alert.alert(
-        "Validation Error",
-        "Please enter both title and description."
-      );
+    const newErrors = { title: "", description: "" };
+    let hasError = false;
+
+    if (title.trim() === "") {
+      newErrors.title = "Title is required.";
+      hasError = true;
+    }
+
+    if (description.trim() === "") {
+      newErrors.description = "Description is required.";
+      hasError = true;
+    }
+
+    if (hasError) {
+      setErrors(newErrors);
       return;
     }
+
     dispatch(
       updateReminder({ id, title, description, date: date.toISOString() })
     );
     await scheduleNotification(title, description, new Date(date));
     navigation.goBack();
+  };
+
+  const handleInputChange = (field, value) => {
+    if (field === "title") {
+      setTitle(value);
+      if (value.trim() !== "") {
+        setErrors((prevErrors) => ({ ...prevErrors, title: "" }));
+      }
+    } else if (field === "description") {
+      setDescription(value);
+      if (value.trim() !== "") {
+        setErrors((prevErrors) => ({ ...prevErrors, description: "" }));
+      }
+    }
   };
 
   const showDatepicker = () => {
@@ -55,20 +86,36 @@ const ReminderDetailsScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter reminder title"
-        value={title}
-        onChangeText={setTitle}
-        autoFocus
-      />
-      <TextInput
-        style={[styles.input, styles.descriptionInput]}
-        placeholder="Enter reminder description"
-        value={description}
-        onChangeText={setDescription}
-        multiline
-      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[styles.input, errors.title ? styles.inputError : null]}
+          placeholder="Enter reminder title"
+          value={title}
+          onChangeText={(text) => handleInputChange("title", text)}
+          autoFocus
+        />
+        {errors.title ? (
+          <Text style={styles.errorText}>{errors.title}</Text>
+        ) : null}
+      </View>
+
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[
+            styles.input,
+            styles.descriptionInput,
+            errors.description ? styles.inputError : null,
+          ]}
+          placeholder="Enter reminder description"
+          value={description}
+          onChangeText={(text) => handleInputChange("description", text)}
+          multiline
+        />
+        {errors.description ? (
+          <Text style={styles.errorText}>{errors.description}</Text>
+        ) : null}
+      </View>
+
       <TouchableOpacity style={styles.dateButton} onPress={showDatepicker}>
         <Icon name="calendar" size={24} color="#fff" />
         <Text style={styles.dateButtonText}>
@@ -98,10 +145,8 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#F9F9F9",
   },
-  label: {
-    fontSize: 18,
-    marginBottom: 10,
-    fontWeight: "bold",
+  inputContainer: {
+    marginBottom: 10, // Adjust space between fields and error messages
   },
   input: {
     height: 50,
@@ -110,10 +155,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 15,
     backgroundColor: "#fff",
-    marginBottom: 20,
   },
   descriptionInput: {
     height: 80,
+    textAlignVertical: "top",
+  },
+  inputError: {
+    borderColor: "#F44336", // Red border for error state
   },
   dateButton: {
     flexDirection: "row",
@@ -139,6 +187,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "#F44336", // Red color for error text
+    fontSize: 14,
+    marginTop: 5, // Space between input field and error message
   },
 });
 

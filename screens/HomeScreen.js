@@ -23,7 +23,7 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     dispatch(fetchRemindersFromStorage());
-  }, [dispatch]);
+  }, [dispatch, navigation]);
 
   const handleDelete = () => {
     dispatch(deleteReminder(selectedReminder.id));
