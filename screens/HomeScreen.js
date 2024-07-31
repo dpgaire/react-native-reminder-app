@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Text,
+  ActivityIndicator,
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -14,15 +15,36 @@ import {
 } from "../redux/remindersSlice";
 import ReminderItem from "../components/ReminderItem";
 import Icon from "react-native-vector-icons/Ionicons";
+import ReminderItemSkeleton from "../components/ReminderItemSkeleton";
+import EmptyContainer from "../components/EmptyContainer";
 
 const HomeScreen = ({ navigation }) => {
   const reminders = useSelector((state) => state.reminders);
   const dispatch = useDispatch();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedReminder, setSelectedReminder] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    dispatch(fetchRemindersFromStorage());
+  // useEffect(() => {
+  //   dispatch(fetchRemindersFromStorage());
+  // }, [dispatch, navigation]);
+
+  const renderSkeleton = () => (
+    <FlatList
+      data={[1, 2, 3, 4, 5]} // Render a list of skeletons
+      keyExtractor={(item, index) => index.toString()}
+      renderItem={() => <ReminderItemSkeleton />}
+    />
+  );
+
+  useEffect(async () => {
+    const fetchReminders = async () => {
+      setLoading(true); // Set loading to true before fetching
+      await dispatch(fetchRemindersFromStorage());
+      setLoading(false); // Set loading to false after fetching
+    };
+
+    fetchReminders();
   }, [dispatch, navigation]);
 
   const handleDelete = () => {
@@ -39,16 +61,10 @@ const HomeScreen = ({ navigation }) => {
       >
         <Icon name="add" size={30} color="#fff" />
       </TouchableOpacity>
-      {reminders.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>You don't have any reminders.</Text>
-          <TouchableOpacity
-            style={styles.addReminderLink}
-            onPress={() => navigation.navigate("AddReminder")}
-          >
-            <Text style={styles.addReminderLinkText}>Click to Add.</Text>
-          </TouchableOpacity>
-        </View>
+      {loading ? ( // Show loading spinner while data is being fetched
+        renderSkeleton()
+      ) : reminders.length === 0 ? (
+        <EmptyContainer navigation={navigation} />
       ) : (
         <FlatList
           data={reminders}
@@ -192,6 +208,16 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: "#fff",
     fontSize: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#000",
   },
 });
 

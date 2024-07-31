@@ -6,6 +6,7 @@ import AddReminderScreen from "../screens/AddReminderScreen";
 import ReminderDetailsScreen from "../screens/ReminderDetailsScreen";
 import { Text, TouchableOpacity, View } from "react-native";
 import Icon from "react-native-vector-icons/Ionicons";
+// import DrawerNavigator from "./DrawerNavigator";
 
 const Stack = createStackNavigator();
 
@@ -30,16 +31,14 @@ const MainNavigator = () => (
         component={HomeScreen}
         options={({ navigation }) => ({
           headerLeft: () => (
-            <TouchableOpacity
-              onPress={() => alert("Drawer feature is comming soon!")}
-            >
+            <TouchableOpacity onPress={() => alert("hello: I am here.")}>
               <Icon name="menu" size={25} style={{ marginLeft: 15 }} />
             </TouchableOpacity>
           ),
           headerTitle: () => <CenterTitle />,
           headerRight: () => (
             <TouchableOpacity
-              onPress={() => alert("Search feature is comming soon!")}
+              onPress={() => navigation.navigate("AddReminder")}
             >
               <Icon name="search" size={25} style={{ marginRight: 15 }} />
             </TouchableOpacity>
